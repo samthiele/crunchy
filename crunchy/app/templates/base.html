@@ -1,0 +1,26 @@
+<!doctype html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>Crunchy {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='icon_64.png') }}">
+    {% block header%}{% endblock %}
+</head>
+
+<!-- Flash error messages -->
+{% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+{% endfor %}
+
+<!-- main content -->
+<body>
+    <div class="content">
+    {% block content %}{% endblock %}
+    </div>
+
+    <!-- scripts -->
+{% block script %}
+
+</body>
+{% endblock %}

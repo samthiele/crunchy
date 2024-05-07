@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% macro add_input( name, type, value='', min='', max='', options=['UNDEFINED'], label='', placeholder='Add value here', error=False ) -%}
+    {% if error == True %}
+        {% set errcls = "error" %}
+    {% else %}
+        {% set errcls = "valid" %}
+    {% endif %}
+    {% if label != '' %} <label for="{{name}}">{{label}}</label> {% endif %}
+    {% if type == "int"%}
+        <input class="{{errcls}}" type="number" id="{{name}}" name="{{name}}" style="width: 25em"
+               value="{{value}}" min="{{min}}" max="{{max}}" step="1" placeholder="{{placeholder}}">
+    {% endif %}
+    {% if type == "float"%}
+        <input class="{{errcls}}" type="number" id="{{name}}" name="{{name}}" style="width: 25em"
+               value="{{value}}" min="{{min}}" max="{{max}}" step="0.01" placeholder="{{placeholder}}">
+    {% endif %}
+    {% if type == "string" or type == "path" %}
+            <input class="{{errcls}}" type="text" id="{{name}}" name="{{name}}" value="{{value}}" size="50" placeholder="{{placeholder}}">
+    {% endif %}
+    {% if type.lower() == "select"%}
+        <select class="{{errcls}}" name="{{name}}" id="{{name}}"}}">
+            {% for o in options %}
+                {% if value == o%}
+                    <option value="{{o}}" selected>{{o}}</option>
+                {% else %}
+                    <option value="{{o}}">{{o}}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    {% endif %}
+    {% if type == "bool" %}
+        {% if value == False%}
+            <input class="{{errcls}}" type="checkbox" id="{{name}}" name="{{name}}" size="50">
+        {% else %}
+            <input class="{{errcls}}" type="checkbox" id="{{name}}" name="{{name}}" size="50" checked>
+        {% endif %}
+    {% endif %}
+{%- endmacro %}
+
+{% macro buildform( source, idf='' ) -%}
+    {% for k,v in source.items() %}
+        {{ add_input('%s__%s'%(idf,k),v['type'].lower(),
+            v.get('value',''),
+            v.get('min',''),
+            v.get('max',''),
+            v.get('options',['UNDEFINED']),
+            label=k, error=(k in errors)) }}
+    {% endfor %}
+{%- endmacro %}
+
+{% block content %}
+<h1>Launchpad</h1>
+<hr/>
+<div>
+    <div class="row">
+        <form method="POST">
+            <div>
+            <h4>Crunchy inputs (search and output directories):</h4>
+
+            <!-- Crunchy settings -->
+            {{buildform( cset, idf='crunchy' )}}
+
+            <h4 style="float:left; clear:left">Workflow settings</h4>
+
+            <!-- Workflow settings -->
+            {{buildform( wset, idf='workflow' )}}
+
+            </div>
+
+            <div class="row" style="margin-top: 24px;">
+                <!--<input type="submit" value="Launch!">&ensp; -->
+                <button class="button" type="submit" name="action__launch">
+                    <img class="icon" src="{{ url_for('static', filename='icon_64.png') }}"/>
+                    Launch!</button>
+                <input class="button" type="button" onclick="window.location.reload();" value="Reset" />
+            </div>
+    </form></div>
+    <hr/>
+</div>
+<div >Crunchy is running in: <i>{{root}}</i></div>
+
+{% endblock %}

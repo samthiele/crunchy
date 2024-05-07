@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Launchpad</h1>
+<hr/>
+<div>
+    <h4>Crunchy is using the following settings:</h4>
+    <div>
+        <!-- Crunchy settings -->
+        <!-- Report these only -->
+        {% for k,v in settings.items() %}
+        <p><i>{{k}} : <b>{{v}}</b> </i></p>
+        {% endfor %}
+    </div>
+    <hr/>
+</div>
+<div >Crunchy is running in: <i>{{root}}</i></div>
+
+{% endblock %}

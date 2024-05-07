@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<meta http-equiv="refresh" content="10">
+{% endblock %}
+
+{% block content %}
+<h1>Crunchy - realtime processing</h1>
+<hr/>
+
+{% set maxDisp = 5 %}
+{% set maxMsg = 25 %}
+{% set queued = crunchy.getProgress(0) %}
+{% set running = crunchy.getProgress(1) %}
+{% set complete = crunchy.getProgress(2) %}
+
+<div>
+    <h3>Control</h3>
+    <div class="buttonbox">
+        <form  method="POST">
+            <div class="row" style="margin-top: 24px;">
+                {%if crunchy.paused()%}
+                <input class="button" type="submit" name="action__resume" value="Resume" style="background: LightSalmon"/>
+                {%else%}
+                <input class="button" type="submit" name="action__pause" value="Pause" style="background: lightgreen"/>
+                {%endif%}
+                <input class="button" type="submit" name="action__finish" value="Finish" style="background: LightSkyBlue"/>
+                <input class="button" type="submit" name="action__terminate" value="Terminate" style="background: LightCoral"/>
+                {%if crunchy.dashboard %}
+                <input class="button" type="button" name="action__monitor" value="Dashboard" style="background: gold"
+                        onclick=" window.open(window.location.href+'dashboard', '_blank'); return false;"/>
+                {%endif%}
+            </div>
+        </form>
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="tight col" style="max-height: 20em; overflow: auto; ">
+            <h3>Queue Info</h3>
+            {%if len(running) > 0 %}
+                <p>Running ({{len(running)}}):</p>
+                <ul>
+                    {%for i,p in enumerate(running)%}
+                        {% if i < maxDisp %}
+                            <li>{{p}}</li>
+                        {% endif %}
+                    {%endfor%}
+                </ul>
+            {%else%}
+            <p> Workers are slacking.... </p>
+            {%endif%}
+            {%if len(queued) > 0 %}
+                <p>Queued ({{len(queued)}}):</p>
+                <ul>
+                    {%for i,p in enumerate(queued)%}
+                        {% if i < maxDisp %}
+                            <li>{{p}}</li>
+                        {% endif %}
+                    {%endfor%}
+                </ul>
+            {%endif%}
+        </div>
+        <div class="tight col">
+            <h3>Scout Info</h3>
+            <p>Crunchy is searching in:</p>
+            <ul>
+            {% for k,v in crunchy.scoutdirs.items() %}
+                <li>{{k}} at depth {{v}}</li>
+            {% endfor %}
+            </ul>
+            <p>{{len(crunchy.file_size_dict)}} files are being monitored, including {{len(crunchy.new_files)}} new ones.
+                {{ len(crunchy.known_files) }} files have not changed since last visit.</p>
+        </div>
+    </div>
+    <hr/>
+    <div class="tight">
+        <h3>Master log</h3>
+        <div class="scrollbox">
+            {% for i, msg in enumerate( reversed( log['master'].split('\n') ) ) %}
+                <p style="margin: 0; padding:0; line-height: 1.5em;">{{msg}}</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="tight">
+        <h3>Worker logs</h3>
+        {% for k,v in log.items() %}
+            {% if k != 'master' %}
+                <p>PID {{k}}</p>
+                <div class="scrollbox">
+                {% for i, msg in enumerate( reversed( v.split('\n') ) ) %}
+                    {% if i < maxMsg %}
+                        <p style="margin: 0; padding:0; line-height: 1.5em;">{{msg}}</p>
+                    {% endif %}
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <hr/>
+    <div class="tight">
+        {%if len(complete) > 0 %}
+        <h3>Completed tasks ({{len(complete)}})</h3>
+            <ul>
+                {%for p in complete%}
+                    <li>{{p}}</li>
+                {%endfor%}
+            </ul>
+        {%endif%}
+    </div>
+</div>
+{% endblock %}

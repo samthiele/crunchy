@@ -1,0 +1,115 @@
+html,
+
+body {
+  background: lightgray;
+  font-family: "Avenir Light", Avenir, Calibri, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 2em;
+  color: black;
+  text-align: center;
+
+  /* center body to max width */
+  margin: 0 auto;
+  max-width: var(--maxwidth);
+  height: 100%;
+}
+
+.tight {
+    line-height: 1.1em;
+}
+
+.button {
+    display: inline-block;
+    height: 42px;
+    padding: 0;
+    width: 200px;
+    margin: 16px;
+}
+
+.error {
+background-color: lightcoral;
+}
+
+.buttonbox {
+    background: lightgray;
+    padding: 8px;
+    margin: 15px;
+    margin-bottom: 30px;
+    border: 2px solid darkgray;
+    border-radius: 16px;
+}
+.scrollbox {
+    height:100px;
+    border:3px solid lightgray;
+    overflow:auto;
+    background:  #f2f2f2;
+    font-size: 14px;
+    margin-bottom: 0px;
+}
+.icon {
+    display: inline-block;
+    vertical-align:middle;
+    max-height: 32px;
+    max-width: 32px;
+    right-pad: 200px;
+    margin: 0;
+    margin-right: 8px;
+}
+
+/* Fonts */
+h1 { font-size: 25px; margin: 1rem 0; }
+h2 { font-size: 20px; margin: 1rem 0; }
+
+/* Layouts */
+.content { /* content container */
+    max-width: 1000px;
+    min-width: 500px;
+    background: white;
+    padding: 5em;
+    margin: auto;
+    margin-top: 50px;
+    text-align: left;
+}
+.row {
+  width: 100%;
+  margin: 10px auto;
+  display: flex;
+  justify-content: center; /* for centering 3 blocks in the center */
+  overflow: auto;
+  /* justify-content: space-between; for space in between */
+}
+.col {
+  flex: 50%;
+  padding-right: 2em;
+  padding-left: 2em;
+}
+ul {
+    font-size: 11px;
+}
+
+.halfblock { width: 50%; margin: 0 auto; }
+
+
+.flash { margin: 2em 0; padding: 2em; background: #cae6f6; border: 1px solid #377ba8; }
+
+/* Links */
+a:link { color: black; text-decoration: none;}
+a:visited { color: darkgray; text-decoration: none;}
+a:hover { color: #21618C; text-decoration: none; transition: scale(1.1);}
+
+label,select,input{float:left}
+label,input[type="submit"]{clear:left}
+input[name^="dob_"]{width:44px;margin:2px}
+label{width:150px}
+
+/* Animations */
+.mousepop {
+  transition: transform .2s;
+}
+.mousepop:hover {
+  transform: scale(1.1); /* (125% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+}
+
+/* Lists */
+.dirlist { list-style-type: square; list-style-position: inside; margin: 0; padding: 0;}
+.filelist { list-style-type: circle; list-style-position: inside; margin: 0; padding: 0;}
