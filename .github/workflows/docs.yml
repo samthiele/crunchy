@@ -4,7 +4,7 @@ name: docs
 on:
   push:
     branches:
-      - master
+      - main
     # Alternative: only build for tags.
     # tags:
     #   - '*'
