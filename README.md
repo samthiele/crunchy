@@ -1,3 +1,5 @@
+## About
+
 Crunchy is a generic python-based platform for constructing and executing automated and asynchronous (multi-threaded) processing workflows. 
 
 At its core, crunchy watches input directories for new files or directories that match user-defined patterns and, once their file size is stable (e.g., if data is being copied),
