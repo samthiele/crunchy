@@ -173,9 +173,9 @@ def run( basepath ):
 
     # run
     try: # try first with default port
-        flaskapp.run(threaded=False, processes=1, host="0.0.0.0", port=5001)
-    except:
-       flaskapp.run(threaded=False, processes=1, host="0.0.0.0", port=0) # find a random port
+        flaskapp.run(threaded=False, processes=1, host="0.0.0.0", port=5001, debug=False, use_reloader=False)
+    except: # otherwise find a random port
+       flaskapp.run(threaded=False, processes=1, host="0.0.0.0", port=0, debug=False, use_reloader=False)
 
 if __name__ == "__main__":
     import sys,os
