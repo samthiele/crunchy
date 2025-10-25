@@ -1,0 +1,52 @@
+# Build and publish docs with pdoc (install hylite first)
+# Place this file at .github/workflows/pdoc-pages.yml
+
+name: Build and publish docs with pdoc
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install build dependencies (install hylite first)
+        run: |
+          python -m pip install --upgrade pip
+          # Install hylite before installing the package so imports during install/build succeed
+          pip install hylite
+          # Install the package (editable) - change to `pip install .` if preferred
+          pip install -e .
+          # Install pdoc for documentation generation
+          pip install pdoc
+
+      - name: Build docs with pdoc
+        # Replace 'crunchy' with your actual package name if different
+        run: |
+          pdoc --html crunchy --output-dir docs --force
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./docs
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
