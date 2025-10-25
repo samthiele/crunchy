@@ -36,9 +36,9 @@ jobs:
           pip install pdoc
 
       - name: Build docs with pdoc
-        # Replace 'crunchy' with your actual package name if different
         run: |
-          pdoc --html crunchy --output-dir docs --force
+          rm -rf docs || true
+          pdoc --output-dir docs crunchy
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v3
