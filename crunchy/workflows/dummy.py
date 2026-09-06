@@ -68,7 +68,7 @@ crunchy.dashboard = """
 {% if len(glob( os.path.join(outpath,"*/comp.image.png"))) == 0 %}
     <p>No results have been generated yet</p>
 {% endif %}
-{% endblock %}'
+{% endblock %}
 """
 
 
@@ -235,7 +235,7 @@ def average( data, outpath, settings ):
     # average it
     data['image'] = np.mean(arr, axis=0 )
 
-@fileTrigger(flow = [average, save_image], fail=crunchy.base.errors.logAndStop, vb=3)
+@fileTrigger(flow = [average, save_image], fail=crunchy.base.errors.logAndStop, vb=3, priority=-1)
 def assemble( data, outpath, settings ):
     files = list( data['path'].glob("*.image.npy"))
     comp = list( data['path'].glob("comp.image.png"))

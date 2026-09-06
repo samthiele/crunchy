@@ -1,18 +1,27 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Launchpad</h1>
-<hr/>
-<div>
-    <h4>Crunchy is using the following settings:</h4>
-    <div>
-        <!-- Crunchy settings -->
-        <!-- Report these only -->
-        {% for k,v in settings.items() %}
-        <p><i>{{k}} : <b>{{v}}</b> </i></p>
-        {% endfor %}
-    </div>
-    <hr/>
+<h1>Current settings</h1>
+{% if ui %}
+<div class="meta">
+    {% if ui.running %}<span class="pill ok">running</span>{% else %}<span class="pill">idle</span>{% endif %}
+    <span class="pill">workers {{ui.alive}}/{{ui.nworkers}}</span>
+    {% if ui.ram_free is not none %}
+    <span class="pill {% if ui.ram_low %}warn{% endif %}">RAM {{ui.ram_free}} / {{ui.ram_total}} GB free</span>
+    {% endif %}
 </div>
-<div >Crunchy is running in: <i>{{root}}</i></div>
+{% endif %}
 
+<div class="card">
+    {% if settings %}
+        <div class="form-grid">
+        {% for k,v in settings.items() %}
+            <label>{{k.replace('_', ' ')}}</label>
+            <p>{{v}}</p>
+        {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">Crunchy has not been initialised yet. Values on the launchpad will be used.</p>
+    {% endif %}
+</div>
+<p class="foot">Working directory: {{root}}</p>
 {% endblock %}

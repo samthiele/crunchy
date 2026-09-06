@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}errors{% endblock %}
+{% block content %}
+<h1>Error log</h1>
+<p class="muted">Today — {{path}}</p>
+{% if exists %}
+<pre class="scrollbox log" style="height: 28rem;">{{text}}</pre>
+<p class="foot">Only today's errors. Older days live as logs/YYYY-MM-DD/errors.txt. The end of the file is shown if it is large.</p>
+{% else %}
+<p>No errors yet today. Job exceptions and worker crashes will appear here.</p>
+{% endif %}
+{% endblock %}

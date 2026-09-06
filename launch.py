@@ -18,4 +18,4 @@ if __name__ == "__main__":
     # (be sure to do this inside a __name__ == '__main__' block to avoid nasty threading bugs
     #  on windows machines (duplication of the Flask app) )
     from crunchy.app import run
-    run(home)
+    run(home, open_browser=True)

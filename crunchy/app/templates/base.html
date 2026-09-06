@@ -1,26 +1,64 @@
 <!doctype html>
-
+<html lang="en" data-theme="dark">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Crunchy {% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='icon_64.png') }}">
-    {% block header%}{% endblock %}
+    <script>
+    (function () {
+      var k = 'crunchy-theme';
+      var saved = localStorage.getItem(k);
+      document.documentElement.setAttribute('data-theme', saved || 'dark');
+      window.toggleTheme = function () {
+        var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(k, next);
+        var el = document.getElementById('theme-label');
+        if (el) el.textContent = next === 'dark' ? 'Light' : 'Dark';
+      };
+    })();
+    </script>
+    {% block header %}{% endblock %}
 </head>
-
-<!-- Flash error messages -->
-{% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
-{% endfor %}
-
-<!-- main content -->
 <body>
-    <div class="content">
+    <header class="topbar">
+        <a class="brand" href="/">
+            <img src="{{ url_for('static', filename='icon_64.png') }}" alt="">
+            Crunchy
+        </a>
+        <nav class="nav">
+            <a href="/">Home</a>
+            <a href="/status">Settings</a>
+            <a href="/directories">Directories</a>
+            <a href="/files">Files</a>
+            {% if ui and ui.error_exists %}
+            <a class="warn" href="/errors">Errors</a>
+            {% else %}
+            <a href="/errors">Errors</a>
+            {% endif %}
+            {% if ui and ui.running and crunchy is defined and crunchy.dashboard %}
+            <a href="/dashboard">Dashboard</a>
+            {% endif %}
+            <button type="button" class="theme-toggle" onclick="toggleTheme()">
+                <span id="theme-label">Theme</span>
+            </button>
+        </nav>
+    </header>
+
+    {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+    {% endfor %}
+
+    <main class="content">
     {% block content %}{% endblock %}
-    </div>
-
-    <!-- scripts -->
-{% block script %}
-
+    </main>
+    {% block script %}
+    <script>
+      var el = document.getElementById('theme-label');
+      if (el) el.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark';
+    </script>
+    {% endblock %}
 </body>
-{% endblock %}
+</html>

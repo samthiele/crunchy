@@ -96,11 +96,11 @@ def _scrape_( p, base ):
         if rel_root == '.': # avoid having '.' in paths
             rel_root = ''
 
-        # add files
+        # add files (os.walk already visits every subdirectory)
         for f in files:
-            out[ os.path.join(rel_root, f)] = os.path.getsize( os.path.join(root, f) )
-
-        # scrape subdirectories
-        for d in directories:
-            out = {**out, **_scrape_( os.path.join(root,d), base ) }
+            fp = os.path.join(root, f)
+            try:
+                out[ os.path.join(rel_root, f)] = os.path.getsize( fp )
+            except OSError:
+                pass
     return out

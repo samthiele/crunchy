@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{{basename(request.path)}}{% endblock %}
+
+{% block content %}
+<h1>{{basename(current) if current else 'Directories'}}</h1>
+<p class="muted">Browse the working directory and add folders for the scout to watch.</p>
+
+{% if notice %}
+<p class="banner">{{notice}}</p>
+{% endif %}
+
+<div class="card" style="margin-bottom: 1rem;">
+    <h3>Scout this folder</h3>
+    {% if watching is not none %}
+    <p class="pill ok">already watching · depth {{watching}}</p>
+    {% endif %}
+    <form method="POST">
+        <label class="muted" for="watch_path">path</label>
+        <input type="text" id="watch_path" name="watch_path" value="{{abs_current}}"
+               placeholder="Paste a folder path"
+               style="width: 100%; max-width: 40em; display: block; margin: 0.3rem 0 0.7rem; padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font: inherit;">
+        <div class="controls" style="align-items: center;">
+            <label class="muted" for="watch_depth">depth</label>
+            <input type="number" id="watch_depth" name="watch_depth" value="0" min="0" max="50"
+                   style="width: 4.5rem; padding: 0.3rem 0.4rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text);">
+            <button class="button primary" type="submit" name="action__watch" value="1">Watch this folder</button>
+        </div>
+    </form>
+    <p class="muted">Depth 0 lists this folder; 1 lists each immediate subfolder, and so on.</p>
+    {% if scoutdirs %}
+    <p class="muted">Currently searching</p>
+    <ul>
+        {% for k,v in scoutdirs.items() %}
+        <li>{{k}} · depth {{v}}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% if not ui.running %}
+    <p class="muted">Crunchy is idle — this folder will be searched after Launch.</p>
+    {% endif %}
+</div>
+
+<div class="row">
+    <div class="col card">
+        <h3>Directories</h3>
+        <ul class="dirlist">
+            <li><a href="{% if parent_dir %}/directories/{{parent_dir}}{% else %}/directories{% endif %}">…</a></li>
+            {% for file in dirs %}
+            <li>
+                <a href="/directories/{% if current %}{{current}}/{% endif %}{{file}}">{{ basename(file) }}</a>
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="watch_path" value="{% if current %}{{current}}/{% endif %}{{file}}">
+                    <input type="hidden" name="watch_depth" value="0">
+                    <button class="button" type="submit" name="action__watch" value="1"
+                            style="min-width: 0; height: 1.6rem; font-size: 0.75rem;">Watch</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col card">
+        <h3>Files</h3>
+        <ul class="filelist">
+            {% for file in files %}
+            <li>
+                <a href="/directories/{% if current %}{{current}}/{% endif %}{{file}}">{{ basename(file) }}</a>
+            </li>
+            {% else %}
+            <li class="muted">No files here.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

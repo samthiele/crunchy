@@ -1,34 +1,86 @@
 {% extends 'base.html' %}
 
-{% block title %}{{basename(request.path)}}{% endblock %}
+{% block title %}files{% endblock %}
+
+{% block header %}
+<meta http-equiv="refresh" content="10">
+{% endblock %}
 
 {% block content %}
-<h1>{{basename(request.path)}}</h1>
-<div class='row'>
-    <div class='halfblock'>
-        <h2> Directories: </h2>
-        <ul class='dirlist'>
-            <li> <a href="/{{parent_dir}}"> ... </a>
-            {% for file in dirs %}
-            <li>
-                <a href="{{ (request.path + '/' if request.path != '/' else '') + file }}">
-                    {{ basename( file ) }}
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div class='halfblock'>
-        <ul class='filelist'>
-            <h2> Files: </h2>
-            {% for file in files %}
-            <li>
-                <a href="{{ (request.path + '/' if request.path != '/' else '') + file }}" >
-                    {{ basename( file ) }}
-                </a>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
+{% set pill = {
+  'watching': 'info', 'new': 'info', 'queued': 'info',
+  'running': 'ok', 'done': 'ok', 'accepted': 'ok',
+  'waiting': 'warn', 'ignored': '', 'known': '', 'error': 'bad'
+} %}
+
+<h1>Files</h1>
+<p class="muted">Paths the scout has measured, filters have judged, or workers have queued.</p>
+
+{% if notice %}
+<p class="banner">{{notice}}</p>
+{% endif %}
+
+<div class="meta">
+    {% for state in ('watching', 'new', 'queued', 'running', 'waiting', 'ignored', 'done', 'error') %}
+    {% if counts.get(state) %}
+    <span class="pill {{pill.get(state, '')}}">{{state}} {{counts[state]}}</span>
+    {% endif %}
+    {% endfor %}
+    {% if not rows %}
+    <span class="pill">none yet</span>
+    {% endif %}
 </div>
+
+{% if not ui.running %}
+<p class="muted">Crunchy is idle — launch a workflow to start scouting.</p>
+{% endif %}
+
+<form method="POST">
+    <div class="controls">
+        <button class="button primary" type="submit" name="action__recheck_selected" value="1">Recheck selected</button>
+        <button class="button" type="submit" name="action__recheck_all_ignored" value="1">Recheck all ignored</button>
+    </div>
+
+    <div class="tablewrap">
+    <table class="filetable">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Status</th>
+                <th>Path</th>
+                <th>Size</th>
+                <th>Filter</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in rows %}
+            <tr>
+                <td>
+                    {% if r.can_recheck %}
+                    <input type="checkbox" name="path" value="{{r.path}}">
+                    {% endif %}
+                </td>
+                <td><span class="pill {{pill.get(r.state, '')}}">{{r.state}}</span></td>
+                <td class="pathcell" title="{{r.path}}">{{r.path}}</td>
+                <td class="muted">
+                    {{r.size_label}}
+                    {% if r.visits %}· {{r.visits}} visit{{'s' if r.visits != 1 else ''}}{% endif %}
+                </td>
+                <td class="muted">{{r.filters}}</td>
+                <td>
+                    {% if r.can_recheck %}
+                    <button class="button" type="submit" name="action__recheck" value="{{r.path}}"
+                            style="min-width: 0; height: 1.6rem; font-size: 0.75rem;">Recheck</button>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" class="muted">The scout has not seen any files yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</form>
+<p class="muted">Recheck drops a path from the ignore list and runs the file filters again.</p>
 {% endblock %}

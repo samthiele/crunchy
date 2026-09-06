@@ -1,83 +1,74 @@
 {% extends 'base.html' %}
 
-{% macro add_input( name, type, value='', min='', max='', options=['UNDEFINED'], label='', placeholder='Add value here', error=False ) -%}
-    {% if error == True %}
-        {% set errcls = "error" %}
-    {% else %}
-        {% set errcls = "valid" %}
-    {% endif %}
-    {% if label != '' %} <label for="{{name}}">{{label}}</label> {% endif %}
+{% macro add_input( name, type, value='', min='', max='', options=['UNDEFINED'], label='', placeholder='Add value here', error=False, desc='' ) -%}
+    <label for="{{name}}">{{label.replace('_', ' ')}}</label>
     {% if type == "int"%}
-        <input class="{{errcls}}" type="number" id="{{name}}" name="{{name}}" style="width: 25em"
+        <input class="{{'error' if error else 'valid'}}" type="number" id="{{name}}" name="{{name}}"
                value="{{value}}" min="{{min}}" max="{{max}}" step="1" placeholder="{{placeholder}}">
-    {% endif %}
-    {% if type == "float"%}
-        <input class="{{errcls}}" type="number" id="{{name}}" name="{{name}}" style="width: 25em"
+    {% elif type == "float"%}
+        <input class="{{'error' if error else 'valid'}}" type="number" id="{{name}}" name="{{name}}"
                value="{{value}}" min="{{min}}" max="{{max}}" step="0.01" placeholder="{{placeholder}}">
-    {% endif %}
-    {% if type == "string" or type == "path" %}
-            <input class="{{errcls}}" type="text" id="{{name}}" name="{{name}}" value="{{value}}" size="50" placeholder="{{placeholder}}">
-    {% endif %}
-    {% if type.lower() == "select"%}
-        <select class="{{errcls}}" name="{{name}}" id="{{name}}"}}">
+    {% elif type == "string" or type == "path" %}
+        <input class="{{'error' if error else 'valid'}}" type="text" id="{{name}}" name="{{name}}"
+               value="{{value}}" placeholder="{{placeholder}}">
+    {% elif type.lower() == "select"%}
+        <select class="{{'error' if error else 'valid'}}" name="{{name}}" id="{{name}}">
             {% for o in options %}
-                {% if value == o%}
-                    <option value="{{o}}" selected>{{o}}</option>
-                {% else %}
-                    <option value="{{o}}">{{o}}</option>
-                {% endif %}
+                <option value="{{o}}" {% if value == o %}selected{% endif %}>{{o}}</option>
             {% endfor %}
         </select>
+    {% elif type == "bool" %}
+        <input class="{{'error' if error else 'valid'}}" type="checkbox" id="{{name}}" name="{{name}}"
+               {% if value %}checked{% endif %}>
     {% endif %}
-    {% if type == "bool" %}
-        {% if value == False%}
-            <input class="{{errcls}}" type="checkbox" id="{{name}}" name="{{name}}" size="50">
-        {% else %}
-            <input class="{{errcls}}" type="checkbox" id="{{name}}" name="{{name}}" size="50" checked>
-        {% endif %}
-    {% endif %}
+    {% if desc %}<span class="hint">{{desc}}</span>{% endif %}
 {%- endmacro %}
 
 {% macro buildform( source, idf='' ) -%}
+    <div class="form-grid">
     {% for k,v in source.items() %}
-        {{ add_input('%s__%s'%(idf,k),v['type'].lower(),
-            v.get('value',''),
-            v.get('min',''),
-            v.get('max',''),
+        {{ add_input('%s__%s'%(idf,k), v['type'].lower(),
+            v.get('value',''), v.get('min',''), v.get('max',''),
             v.get('options',['UNDEFINED']),
-            label=k, error=(k in errors)) }}
+            label=k, error=(k in errors), desc=v.get('desc','')) }}
     {% endfor %}
+    </div>
 {%- endmacro %}
 
 {% block content %}
 <h1>Launchpad</h1>
-<hr/>
-<div>
-    <div class="row">
-        <form method="POST">
-            <div>
-            <h4>Crunchy inputs (search and output directories):</h4>
-
-            <!-- Crunchy settings -->
-            {{buildform( cset, idf='crunchy' )}}
-
-            <h4 style="float:left; clear:left">Workflow settings</h4>
-
-            <!-- Workflow settings -->
-            {{buildform( wset, idf='workflow' )}}
-
-            </div>
-
-            <div class="row" style="margin-top: 24px;">
-                <!--<input type="submit" value="Launch!">&ensp; -->
-                <button class="button" type="submit" name="action__launch">
-                    <img class="icon" src="{{ url_for('static', filename='icon_64.png') }}"/>
-                    Launch!</button>
-                <input class="button" type="button" onclick="window.location.reload();" value="Reset" />
-            </div>
-    </form></div>
-    <hr/>
+{% if ui %}
+<div class="meta">
+    <span class="pill">root {{root}}</span>
+    {% if ui.ram_free is not none %}
+    <span class="pill {% if ui.ram_low %}warn{% endif %}">RAM {{ui.ram_free}} / {{ui.ram_total}} GB free</span>
+    {% endif %}
+    {% if ui.disk_free is not none %}
+    <span class="pill {% if ui.disk_low %}warn{% endif %}">disk {{ui.disk_free}} / {{ui.disk_total}} GB</span>
+    {% endif %}
+    <span class="pill">reserve {{cset.get('ram_reserve', {}).get('value', 4)}} GB</span>
+    <span class="pill">workers {{cset.get('nthreads', {}).get('value', '?')}}</span>
 </div>
-<div >Crunchy is running in: <i>{{root}}</i></div>
+{% endif %}
 
+<form method="POST">
+    <h3>Crunchy</h3>
+    {{buildform( cset, idf='crunchy' )}}
+
+    <h3>Workflow</h3>
+    {% if wset %}
+    {{buildform( wset, idf='workflow' )}}
+    {% else %}
+    <p class="muted">No workflow settings registered. Import a workflow before launching.</p>
+    {% endif %}
+
+    <div class="controls">
+        <button class="button primary" type="submit" name="action__launch">
+            <img class="icon" src="{{ url_for('static', filename='icon_64.png') }}" alt="">
+            Launch
+        </button>
+        <input class="button" type="button" onclick="window.location.reload();" value="Reset">
+        <input class="button" type="submit" name="action__shutdown" value="Shutdown">
+    </div>
+</form>
 {% endblock %}

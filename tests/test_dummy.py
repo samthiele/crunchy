@@ -67,23 +67,17 @@ class MyTestCase(unittest.TestCase):
         outdir = self.base_path / self.output_path
         os.makedirs(outdir, exist_ok=True)
 
-        # populate settings
-        for k, v in crunchy.workflow_settings.items():
-            crunchy.settings[k] = v['value']
-        for k, v in crunchy.crunchy_settings.items():
-            crunchy.settings[k] = v['value']
-
-        # do tests
+        # do tests (local settings; no worker pool required)
         from crunchy.workflows.dummy import setup
         setup( Path( self.settings['inpath'] ), Path( self.settings['outpath'] ), self.settings )
 
         print("Building signal... ", end='')
-        build_image(data, outdir, crunchy.settings)
+        build_image(data, outdir, self.settings)
         self.assertTrue('image' in data)
         print("Adding noise...", end='')
-        add_noise(data, outdir, crunchy.settings)
+        add_noise(data, outdir, self.settings)
         print("Saving image...", end='')
-        save_image(data, outdir, crunchy.settings)
+        save_image(data, outdir, self.settings)
 
     def test_file_trigger(self):
         import crunchy.workflows.dummy

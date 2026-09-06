@@ -6,7 +6,6 @@ from pathlib import Path
 
 import crunchy
 from crunchy import getQueue
-from crunchy import block
 from crunchy import entries, setup, finalize
 from crunchy import log, getLogDict
 from crunchy.base.errors import logAndStop
@@ -48,7 +47,7 @@ def finish( func ):
     finalize[func.__name__] = func
     return func
 
-def fileTrigger(*, flow, fail=logAndStop, block=False, vb=1):
+def fileTrigger(*, flow, fail=logAndStop, block=False, vb=1, priority=0):
     """
     Makes a function a trigger point for a crunchy workflow and registers it with crunchy.
 
@@ -56,12 +55,16 @@ def fileTrigger(*, flow, fail=logAndStop, block=False, vb=1):
     :param fail: An error handling functions if this or any subsequent workflow function fails.
     :param block: True if this workflow should be run in the current thread (blocking it). Default is False.
     :param vb: A number from 0 to 3 defining the amount of outputs to the log. Higher numbers give more outputs. Default is 1.
+    :param priority: Integer job priority. Higher values are taken from the worker queue first. Jobs with equal
+                     priority stay FIFO. Default is 0. A filter may override this per file by returning
+                     ``(status, outpath, priority)``.
     :return: A filefilter decorator for wrapping around the underlying filter.
     """
     def decorator(func):
         func.flow = flow  # store workflow functions
         func.fail = fail  # what do do if it fails
         func.block = block
+        func.priority = int(priority)
         func.log = getLogDict
         func.queue = getQueue
         def wrapper(path, outpath, settings):
@@ -70,10 +73,16 @@ def fileTrigger(*, flow, fail=logAndStop, block=False, vb=1):
 
             # run source function to evaluate if file is valid for this workflow
             data = dict(path=Path(path))
-            #print(path, os.path.exists(path))
             status = ERROR
+            job_priority = func.priority
             try:
-                status, outpath = func(data, Path(outpath), settings)
+                result = func(data, Path(outpath), settings)
+                if isinstance(result, tuple) and len(result) == 3:
+                    status, outpath, job_priority = result
+                elif isinstance(result, tuple) and len(result) >= 2:
+                    status, outpath = result[0], result[1]
+                else:
+                    status = result
             except BaseException as E:
                 # pass everything to error handler
                 func.fail( func.log(), E, function=func,
@@ -93,10 +102,12 @@ def fileTrigger(*, flow, fail=logAndStop, block=False, vb=1):
                     crunchy.prog[path] = 2  # register job as complete
                 else:  # pass job to queue (block == False )
                     if vb >= 2:
-                        log("Queuing job for: %s" % path, func.log())
+                        log("Queuing job for: %s (priority %s)" % (path, job_priority), func.log())
                     crunchy.prog[path] = 0 # register job as queued.
-                    func.queue().put( ("EXEC", (_job, (func.flow, func.fail, func.log(),
-                                                      data, outpath, settings ), {})))
+                    # do not pickle the parent log dict onto the queue
+                    func.queue().put( ("EXEC", (_job, (func.flow, func.fail, None,
+                                                      data, outpath, settings ), {})),
+                                      priority=int(job_priority))
             return status
 
         # register function with crunchy

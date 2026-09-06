@@ -1,16 +1,12 @@
 """
 Error handling functions.
 """
-import traceback
-from crunchy import log
-from crunchy import getLogDict
+from crunchy import log_error
 
 # error loggers
 def logAndStop( logDict, E, *, function, data, outpath, settings ):
-    err = "EXCEPTION TRACE  PRINT:\n{}".format( "".join(traceback.format_exception(type(E), E, E.__traceback__)))
-    log("Stopping due to error in function %s:\n %s\n" % (function.__name__, err ), logDict )
+    log_error("Stopping due to error in function %s" % function.__name__, E, logDict )
     return False
 def logAndContinue( logDict, E, *, function, data, outpath, settings ):
-    err = "EXCEPTION TRACE  PRINT:\n{}".format("".join(traceback.format_exception(type(E), E, E.__traceback__)))
-    log("Continuing after error in function %s:\n %s\n" % (function.__name__, err ), logDict )
+    log_error("Continuing after error in function %s" % function.__name__, E, logDict )
     return True
