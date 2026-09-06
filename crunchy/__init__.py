@@ -39,6 +39,28 @@ _crunchy_cfg_applied = False
 _workflow_cfg_ids = set()
 
 
+_WRAP_QUOTES = (
+    ("'", "'"),
+    ('"', '"'),
+    ('\u2018', '\u2019'),
+    ('\u201c', '\u201d'),
+)
+
+
+def _strip_wrapping_quotes(text):
+    """Drop matching '…' / \"…\" (and curly) wraps people paste around paths."""
+    text = str(text).strip()
+    changed = True
+    while text and changed:
+        changed = False
+        for left, right in _WRAP_QUOTES:
+            if len(text) >= 2 and text[0] == left and text[-1] == right:
+                text = text[1:-1].strip()
+                changed = True
+                break
+    return text
+
+
 def _coerce_setting(entry, raw):
     """Cast a config-file value using the setting schema's ``type``."""
     dtype = str(entry.get('type', 'string')).lower()
@@ -52,7 +74,7 @@ def _coerce_setting(entry, raw):
         if dtype == 'path':
             return Path(raw).expanduser()
         return raw
-    text = str(raw).strip()
+    text = _strip_wrapping_quotes(raw)
     if dtype == 'int':
         return int(float(text))
     if dtype == 'float':
@@ -91,10 +113,7 @@ def _parse_config_file(path):
         out.update(dict(parser.defaults()))
     for section in parser.sections():
         for key, val in parser.items(section):
-            text = val.strip()
-            if len(text) >= 2 and text[0] == text[-1] and text[0] in ('"', "'"):
-                text = text[1:-1]
-            out[key] = text
+            out[key] = _strip_wrapping_quotes(val)
     return out
 
 

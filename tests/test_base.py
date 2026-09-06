@@ -179,6 +179,31 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual(schema['project']['value'], 'Field')
             self.assertFalse(schema['VNIR']['value'])
             self.assertEqual(crunchy.read_ini(self.base_path / 'missing.ini', missing_ok=True), {})
+
+            quoted = self.base_path / 'quoted.ini'
+            quoted.write_text(
+                "[crunchy]\ninpath = '/Volumes/Extreme Pro/RAW'\n"
+                "outpath = \"/data/Crunchy Out\"\n",
+                encoding='utf-8',
+            )
+            crunchy.apply_config(quoted, force=True)
+            self.assertEqual(
+                Path(crunchy.crunchy_settings['inpath']['value']),
+                Path('/Volumes/Extreme Pro/RAW'),
+            )
+            self.assertEqual(
+                Path(crunchy.crunchy_settings['outpath']['value']),
+                Path('/data/Crunchy Out'),
+            )
+            path_entry = dict(type='path', value='CrunchyIn')
+            self.assertEqual(
+                crunchy._coerce_setting(path_entry, "'/Volumes/Extreme Pro/SPAIN2026'"),
+                Path('/Volumes/Extreme Pro/SPAIN2026'),
+            )
+            self.assertEqual(
+                crunchy._strip_wrapping_quotes('  "/tmp/foo bar"  '),
+                '/tmp/foo bar',
+            )
         finally:
             for k, v in saved_c.items():
                 crunchy.crunchy_settings[k].update(v)

@@ -203,7 +203,7 @@ def _ui_info():
 
 def _watch_from_form(req_path):
     """Register a directory from the Directories tab as a scout path."""
-    raw = (request.form.get('watch_path') or req_path or '').strip()
+    raw = crunchy._strip_wrapping_quotes(request.form.get('watch_path') or req_path or '')
     if not raw:
         return 'Enter a folder path.'
     try:
@@ -353,9 +353,9 @@ def run( basepath, open_browser=False, port=5001 ):
                     dtype = target[key].get('type','string').lower()
                     try:
                         if dtype == 'string' or dtype=='select':
-                            v = str(v)
+                            v = crunchy._strip_wrapping_quotes(v) if dtype == 'string' else str(v)
                         elif dtype == 'path':
-                            v = Path(v)
+                            v = Path(crunchy._strip_wrapping_quotes(v)).expanduser()
                             if target[key].get('mustexist', False):
                                 assert os.path.exists(root / v)
                         elif dtype == 'float':
@@ -377,8 +377,8 @@ def run( basepath, open_browser=False, port=5001 ):
                 for d in [crunchy.crunchy_settings, crunchy.workflow_settings]:
                     for k,v in d.items():
                         if v['type'] == 'path':
-                            if str(root) not in str(v['value']):
-                                v['value'] = root / v['value']
+                            p = Path(crunchy._strip_wrapping_quotes(v['value'])).expanduser()
+                            v['value'] = p if p.is_absolute() else (root / p)
                         if v['type'] == 'bool':
                             if k not in checked:
                                 v['value'] = False
